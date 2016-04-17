@@ -1,0 +1,18 @@
+//
+//  Prefix.pch
+//  Samples
+//
+//  Created by Killua Liu on 8/31/15.
+//  Copyright (c) 2015 Syzygy. All rights reserved.
+//
+
+#ifndef Samples_Prefix_pch
+#define Samples_Prefix_pch
+
+@import Foundation;
+@import ObjectiveC;
+
+#import "UIView+Frame.h"
+#import "UIView+Utility.h"
+
+#endif
