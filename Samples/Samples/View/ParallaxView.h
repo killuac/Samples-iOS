@@ -7,7 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ParallaxViewCell.h"
+
+@interface ParallaxViewCell : UICollectionViewCell
+
+@property (nonatomic, strong, readonly) UIImageView *imageView;
+
+@end
+
 
 @class ParallaxView;
 
@@ -19,6 +25,7 @@
 - (NSUInteger)numberOfPages;
 
 @end
+
 
 @interface ParallaxView : UICollectionView
 

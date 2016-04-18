@@ -9,6 +9,27 @@
 #import "ParallaxView.h"
 #import "ViewController.h"
 
+@implementation ParallaxViewCell
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        _imageView = [[UIImageView alloc] init];
+        _imageView.contentMode = UIViewContentModeScaleAspectFill;
+        [self.contentView addSubview:_imageView];
+    }
+    return self;
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.imageView.size = CGSizeMake(self.width, self.height);
+}
+
+@end
+
+
 #define AUTO_SCROLL_INTERVAL    5.0
 #define CELL_IDENTIFIER_COMMON  @"CommonCell"
 
@@ -104,9 +125,9 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (void)didMoveToSuperview
 {
-    if ([self.superview respondsToSelector:@selector(contentInset)]) {
+    if (self.superScrollView) {
         self.top = -self.height;
-        [(id)self.superview setContentInset:UIEdgeInsetsMake(self.height, 0, 0, 0)];
+        self.superScrollView.contentInset = UIEdgeInsetsMake(self.height, 0, 0, 0);
     }
     
     [self addObservers];
@@ -135,16 +156,16 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     [self.customDataSource parallaxView:self configCell:cell forPageIndexPath:indexPath];
     
     // Set background view
-//    if (!self.backgroundView) {
-//        if (indexPath.item == 0) {
-//            cell.hidden = YES;
-//        }
-//        
-//        self.backgroundView = [[UIView alloc] initWithFrame:self.bounds];
-//        self.backgroundCell = [[ParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
-//        [self.customDataSource parallaxView:self configCell:self.backgroundCell forPageIndexPath:[NSIndexPath indexPathForItem:0 inSection:0]];
-//        [self.backgroundView addSubview:self.backgroundCell];
-//    }
+    if (!self.backgroundView) {
+        if (indexPath.item == 0) {
+            cell.hidden = YES;
+        }
+        
+        self.backgroundView = [[UIView alloc] initWithFrame:self.bounds];
+        self.backgroundCell = [[ParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
+        [self.customDataSource parallaxView:self configCell:self.backgroundCell forPageIndexPath:[NSIndexPath indexPathForItem:0 inSection:0]];
+        [self.backgroundView addSubview:self.backgroundCell];
+    }
     
     return cell;
 }
@@ -152,16 +173,16 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 #pragma mark - Scroll view delegate
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-//    CGPoint contentOffset = scrollView.contentOffset;
-//    CGFloat offsetX = ABS(contentOffset.x - self.width);
-//    
-//    if (contentOffset.x >= self.width) {
-//        self.backgroundCell.left = 0;
-//        self.backgroundCell.width = self.width - offsetX;
-//    } else {
-//        self.backgroundCell.left = offsetX;
-//        self.backgroundCell.width = self.width - offsetX;
-//    }
+    CGPoint contentOffset = scrollView.contentOffset;
+    CGFloat offsetX = ABS(contentOffset.x - self.width);
+    
+    if (contentOffset.x >= self.width) {
+        self.backgroundCell.left = 0;
+        self.backgroundCell.width = self.width - offsetX;
+    } else {
+        self.backgroundCell.left = offsetX;
+        self.backgroundCell.width = self.width - offsetX;
+    }
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
@@ -211,18 +232,23 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 #pragma mark - Observe superView's content offset
 - (void)addObservers
 {
-    [self.superview addObserver:self
-                     forKeyPath:self.contentOffsetKeyPath
-                        options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
-                        context:ParallaxSuperObserverContext];
+    [self.superScrollView addObserver:self
+                           forKeyPath:self.contentOffsetKeyPath
+                              options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
+                              context:ParallaxSuperObserverContext];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAutoScrollScheduler) name:UIApplicationDidBecomeActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAutoScrollScheduler) name:UIApplicationDidEnterBackgroundNotification object:nil];
 }
 
+- (UIScrollView *)superScrollView
+{
+    return ([self.superview isKindOfClass:[UIScrollView class]]) ? (id)self.superview : nil;
+}
+
 - (void)dealloc
 {
-    [self.superview removeObserver:self forKeyPath:self.contentOffsetKeyPath];
+    [self.superScrollView removeObserver:self forKeyPath:self.contentOffsetKeyPath];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -238,11 +264,11 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         CGFloat originalHeight = self.originalSize.height;
         CGFloat offsetY = contentOffset.y + originalHeight;
         
-        // Resize
+//      Resize frame
         self.top = contentOffset.y;
         self.height = originalHeight - offsetY;
         
-        // Update navigation
+//      Update navigation
         if (!self.navigationBar) return;
         CGPoint preContentOffset = [change[NSKeyValueChangeOldKey] CGPointValue];
         CGFloat diffY = contentOffset.y - preContentOffset.y;
@@ -299,12 +325,8 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (void)scrollPage
 {
-    if (self.isTracking) {
+    if (self.isTracking || self.superScrollView.isTracking || self.superScrollView.isDecelerating) {
         return;
-    }
-    if ([self.superview isKindOfClass:[UIScrollView class]]) {
-        UIScrollView *superView = (id)self.superview;
-        if (superView.isTracking || superView.isDecelerating) return;
     }
     
     NSUInteger item = self.pageControl.currentPage + 2;
