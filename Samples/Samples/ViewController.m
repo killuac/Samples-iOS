@@ -29,6 +29,7 @@
     self.tableView.allowsSelection = NO;
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
+    self.tableView.backgroundColor = [UIColor blackColor];
     [self.view addSubview:self.tableView];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"TableCell"];
     
@@ -36,6 +37,11 @@
     parallaxView.customDataSource = self;
     parallaxView.isAutoScrolling = YES;
     [self.tableView addSubview:parallaxView];
+    
+    _navgationView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 44)];
+    _navgationView.alpha = 0;
+    _navgationView.backgroundColor = [UIColor blackColor];
+    [self.view addSubview:self.navgationView];
 }
 
 - (BOOL)prefersStatusBarHidden
@@ -46,7 +52,7 @@
 #pragma mark - Table view data source
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 20;
+    return 50;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
