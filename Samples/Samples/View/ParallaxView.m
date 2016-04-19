@@ -53,6 +53,11 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 @implementation ParallaxView
 
++ (instancetype)parallaxViewWithFrame:(CGRect)frame
+{
+    return [[self alloc] initWithFrame:frame pageCount:0 animated:NO];
+}
+
 + (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount
 {
     return [[self alloc] initWithFrame:frame pageCount:pageCount animated:NO];
@@ -148,18 +153,16 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         
         if (self.isAnimated) {
             self.superScrollView.contentOffset = CGPointZero;
-            [self performSelector:@selector(starAnimation) withObject:nil afterDelay:0.5];
+            [self performSelector:@selector(startAnimation) withObject:nil afterDelay:0.3];
         }
     }
     
     [self addObservers];
 }
 
-- (void)starAnimation
+- (void)startAnimation
 {
-    [UIView animateWithDuration:0.8 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        [self.superScrollView setContentOffset:CGPointMake(0, -self.originalSize.height) animated:YES];
-    } completion:nil];
+    [self.superScrollView setContentOffset:CGPointMake(0, -self.originalSize.height) animated:YES];
 }
 
 #pragma mark - Collection view data source
