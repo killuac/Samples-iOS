@@ -80,12 +80,12 @@
     UIImageView *smallImageView = [[UIImageView alloc] initWithImage:imageView.image];
     smallImageView.contentMode = UIViewContentModeScaleAspectFill;
     smallImageView.clipsToBounds = YES;
-    smallImageView.alpha = MAX(0.5, parallaxView.alpha - 0.2);
+    smallImageView.alpha = MAX(0.3, parallaxView.alpha - 0.5);
     smallImageView.size = CGSizeMake(30, 30);
     smallImageView.center = parallaxView.center;
     [toView.superview addSubview:smallImageView];
     
-    [UIView animateWithDuration:0.5 animations:^{
+    [UIView animateWithDuration:0.5 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
         CGFloat tx = toView.centerX - smallImageView.centerX;
         CGFloat ty = toView.centerY - smallImageView.centerY;
         smallImageView.transform = CGAffineTransformMakeTranslation(tx, ty);

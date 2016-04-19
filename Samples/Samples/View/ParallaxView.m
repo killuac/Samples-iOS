@@ -224,11 +224,10 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     CGPoint contentOffset = scrollView.contentOffset;
     CGFloat xOffset = ABS(contentOffset.x - self.width * (self.pageControl.currentPage + 1));
     
-    if (self.isLeftScroll || [self.panGestureRecognizer translationInView:scrollView].x <= 0) { // Left scroll
-        self.backgroundCell.left = 0;
-        self.backgroundCell.width = self.width - xOffset;
-    } else {                                                                                    // Right scroll
-        self.backgroundCell.left = xOffset * 0.5;
+    if (self.isLeftScroll || [self.panGestureRecognizer translationInView:scrollView].x <= 0) {
+        self.backgroundCell.left = -xOffset * 0.5;  // Left scroll
+    } else {
+        self.backgroundCell.left = xOffset * 0.5;   // Right scroll
     }
 }
 
@@ -243,13 +242,19 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     [self stopAutoScrollScheduler];
     self.isLeftScroll = NO;
     self.hiddenCell.hidden = YES;
+    
+    [self performSelector:@selector(enableScroll) withObject:nil afterDelay:0.5];
+}
+
+- (void)enableScroll
+{
+    self.scrollEnabled = YES;
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     [self startAutoScrollScheduler];
     [self updateUI];
-    self.scrollEnabled = YES;
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
