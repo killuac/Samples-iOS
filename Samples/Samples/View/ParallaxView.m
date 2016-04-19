@@ -30,20 +30,24 @@
 @end
 
 
-#define AUTO_SCROLL_INTERVAL    5.0
-#define CELL_IDENTIFIER_COMMON  @"CommonCell"
+#define AUTO_SCROLL_INTERVAL        5.0
+#define CELL_IDENTIFIER_COMMON      @"CommonCell"
 
 static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // Scroll super view
 
 @interface ParallaxView () <UICollectionViewDataSource, UICollectionViewDelegate>
 
 @property (nonatomic, assign) NSUInteger pageCount;
-@property (nonatomic, strong) UIPageControl *pageControl;
+@property (nonatomic, assign) BOOL isAnimated;
 @property (nonatomic, strong) ParallaxViewCell *backgroundCell;
 @property (nonatomic, strong) NSTimer *timer;
 
 @property (nonatomic, assign) CGSize originalSize;
 @property (nonatomic, assign) CGPoint targetContentOffset;
+
+@property (nonatomic, assign) BOOL isLeftScroll;    // Auto scroll is to left
+@property (nonatomic, assign) BOOL needHideCell;    // For parallax effort
+@property (nonatomic, strong) ParallaxViewCell *hiddenCell;
 
 @end
 
@@ -51,10 +55,15 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 + (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount
 {
-    return [[self alloc] initWithFrame:frame pageCount:pageCount];
+    return [[self alloc] initWithFrame:frame pageCount:pageCount animated:NO];
 }
 
-- (instancetype)initWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount
++ (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount animated:(BOOL)isAnimated
+{
+    return [[self alloc] initWithFrame:frame pageCount:pageCount animated:isAnimated];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount animated:(BOOL)isAnimated
 {
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
     flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
@@ -64,12 +73,14 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     if (self = [super initWithFrame:frame collectionViewLayout:flowLayout]) {
         self.originalSize = self.size;
         self.pageCount = pageCount;
+        self.isAnimated = isAnimated;
         
         self.dataSource = self;
         self.delegate = self;
         self.pagingEnabled = YES;
         self.showsHorizontalScrollIndicator = NO;
         self.decelerationRate = UIScrollViewDecelerationRateFast;
+        self.backgroundColor = [UIColor whiteColor];
         [self registerClass:[ParallaxViewCell class] forCellWithReuseIdentifier:CELL_IDENTIFIER_COMMON];
         
         [self addSubviews];
@@ -82,6 +93,8 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 {
     [(id)self.collectionViewLayout setItemSize:frame.size];
     [super setFrame:frame];
+    
+    self.backgroundCell.frame = self.backgroundView.bounds;
     self.contentOffset = self.targetContentOffset;
 }
 
@@ -123,14 +136,30 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     }
 }
 
+- (UIScrollView *)superScrollView
+{
+    return [self.superview isKindOfClass:[UIScrollView class]] ? (id)self.superview : nil;
+}
+
 - (void)didMoveToSuperview
 {
     if (self.superScrollView) {
-        self.top = -self.height;
         self.superScrollView.contentInset = UIEdgeInsetsMake(self.height, 0, 0, 0);
+        
+        if (self.isAnimated) {
+            self.superScrollView.contentOffset = CGPointZero;
+            [self performSelector:@selector(starAnimation) withObject:nil afterDelay:0.5];
+        }
     }
     
     [self addObservers];
+}
+
+- (void)starAnimation
+{
+    [UIView animateWithDuration:0.8 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.superScrollView setContentOffset:CGPointMake(0, -self.originalSize.height) animated:YES];
+    } completion:nil];
 }
 
 #pragma mark - Collection view data source
@@ -144,106 +173,127 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
+//  Cell indexPath
     ParallaxViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CELL_IDENTIFIER_COMMON forIndexPath:indexPath];
-
-    if (indexPath.item == 0) {
-        indexPath = [NSIndexPath indexPathForItem:self.pageCount - 1 inSection:indexPath.section];
-    } else if (indexPath.item - 1 < self.pageCount) {
-        indexPath = [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section];
-    } else {
-        indexPath = [NSIndexPath indexPathForItem:0 inSection:indexPath.section];
-    }
-    [self.customDataSource parallaxView:self configCell:cell forPageIndexPath:indexPath];
+    cell.hidden = NO;
     
-    // Set background view
-    if (!self.backgroundView) {
-        if (indexPath.item == 0) {
-            cell.hidden = YES;
-        }
-        
+//  Data source indexPath
+    NSIndexPath *dsIndexPath = nil;
+    if (indexPath.item == 0) {
+        dsIndexPath = [NSIndexPath indexPathForItem:self.pageCount - 1 inSection:indexPath.section];
+    } else if (indexPath.item - 1 < self.pageCount) {
+        dsIndexPath = [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section];
+    } else {
+        dsIndexPath = [NSIndexPath indexPathForItem:0 inSection:indexPath.section];
+    }
+    [self.customDataSource parallaxView:self configCell:cell forPageIndexPath:dsIndexPath];
+    
+//  Set background view for parallax effect
+    if (!self.backgroundView && dsIndexPath.item == 0 && self.pageCount > 1) {
         self.backgroundView = [[UIView alloc] initWithFrame:self.bounds];
         self.backgroundCell = [[ParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
-        [self.customDataSource parallaxView:self configCell:self.backgroundCell forPageIndexPath:[NSIndexPath indexPathForItem:0 inSection:0]];
-        [self.backgroundView addSubview:self.backgroundCell];
+        self.needHideCell = YES;
+    }
+    
+    if (self.needHideCell) {
+        self.hiddenCell = cell;
+        self.needHideCell = NO;
     }
     
     return cell;
 }
 
+- (void)setBackgroundCell:(ParallaxViewCell *)backgroundCell
+{
+    [self.backgroundCell removeFromSuperview];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:self.pageControl.currentPage inSection:0];
+    [self.customDataSource parallaxView:self configCell:backgroundCell forPageIndexPath:indexPath];
+    [self.backgroundView addSubview:backgroundCell];
+    
+    _backgroundCell = backgroundCell;
+}
+
 #pragma mark - Scroll view delegate
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    CGPoint contentOffset = scrollView.contentOffset;
-    CGFloat offsetX = ABS(contentOffset.x - self.width);
+    if (self.superScrollView.isDecelerating) return;
     
-    if (contentOffset.x >= self.width) {
+    CGPoint contentOffset = scrollView.contentOffset;
+    CGFloat xOffset = ABS(contentOffset.x - self.width * (self.pageControl.currentPage + 1));
+    
+    if (self.isLeftScroll || [self.panGestureRecognizer translationInView:scrollView].x <= 0) { // Left scroll
         self.backgroundCell.left = 0;
-        self.backgroundCell.width = self.width - offsetX;
-    } else {
-        self.backgroundCell.left = offsetX;
-        self.backgroundCell.width = self.width - offsetX;
+        self.backgroundCell.width = self.width - xOffset;
+    } else {                                                                                    // Right scroll
+        self.backgroundCell.left = xOffset * 0.5;
     }
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
 {
+    self.scrollEnabled = NO;
     self.targetContentOffset = *targetContentOffset;
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     [self stopAutoScrollScheduler];
+    self.isLeftScroll = NO;
+    self.hiddenCell.hidden = YES;
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     [self startAutoScrollScheduler];
     [self updateUI];
+    self.scrollEnabled = YES;
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
-    self.targetContentOffset = self.contentOffset;
     [self updateUI];
 }
 
 - (void)updateUI
 {
-    NSIndexPath *indexPath = nil;
+    NSUInteger itemIndex = 0;
+    
+//  Set content offset for endless scroll
     if (self.contentOffset.x == 0) {
         self.pageControl.currentPage = self.pageCount - 1;
-        indexPath = [NSIndexPath indexPathForItem:self.pageCount inSection:0];
+        itemIndex = self.pageCount;
     } else if (self.contentOffset.x == self.contentSize.width - self.width) {
         self.pageControl.currentPage = 0;
-        indexPath = [NSIndexPath indexPathForItem:1 inSection:0];
+        itemIndex = 1;
     } else {
         self.pageControl.currentPage = (self.contentOffset.x / self.width) - 1;
-        indexPath = [NSIndexPath indexPathForItem:self.pageControl.currentPage + 1 inSection:0];
+        itemIndex = self.pageControl.currentPage + 1;
     }
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:0];
     [self scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionLeft animated:NO];
     
-    // Update background view
-//    self.backgroundView = [[ParallaxViewCell alloc] initWithFrame:self.frame];
-//    [self.customDataSource parallaxView:self configCell:(id)self.backgroundView forPageIndexPath:[NSIndexPath indexPathForItem:indexPath.item-1 inSection:0]];
-//    ParallaxViewCell *visibleCell = (id)[self cellForItemAtIndexPath:indexPath];
-//    visibleCell.hidden = YES;
+//  Set background cell and hide cell
+//  Maybe visible is nil since reset content offset for endless scroll, so need hide cell in method "collectionView:cellForItemAtIndexPath:"
+    self.backgroundCell = [[ParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
+    ParallaxViewCell *visibleCell = (id)[self cellForItemAtIndexPath:indexPath];
+    if (visibleCell) {
+        self.hiddenCell = visibleCell;
+    } else {
+        self.needHideCell = YES;
+    }
+    self.hiddenCell.hidden = NO;
 }
 
 #pragma mark - Observe superView's content offset
 - (void)addObservers
 {
     [self.superScrollView addObserver:self
-                           forKeyPath:self.contentOffsetKeyPath
-                              options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
-                              context:ParallaxSuperObserverContext];
+                             forKeyPath:self.contentOffsetKeyPath
+                                options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
+                                context:ParallaxSuperObserverContext];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAutoScrollScheduler) name:UIApplicationDidBecomeActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAutoScrollScheduler) name:UIApplicationDidEnterBackgroundNotification object:nil];
-}
-
-- (UIScrollView *)superScrollView
-{
-    return ([self.superview isKindOfClass:[UIScrollView class]]) ? (id)self.superview : nil;
 }
 
 - (void)dealloc
@@ -262,28 +312,28 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     if (context == ParallaxSuperObserverContext) {
         CGPoint contentOffset = [change[NSKeyValueChangeNewKey] CGPointValue];
         CGFloat originalHeight = self.originalSize.height;
-        CGFloat offsetY = contentOffset.y + originalHeight;
+        CGFloat yOffset = contentOffset.y + originalHeight;
         
 //      Resize frame
         self.top = contentOffset.y;
-        self.height = originalHeight - offsetY;
+        self.height = originalHeight - yOffset;
         
 //      Update navigation
         if (!self.navigationBar) return;
         CGPoint preContentOffset = [change[NSKeyValueChangeOldKey] CGPointValue];
-        CGFloat diffY = contentOffset.y - preContentOffset.y;
+        CGFloat yDiff = contentOffset.y - preContentOffset.y;
         CGFloat navHeight = self.navigationBar.height;
         
-        if (offsetY > 0 && offsetY < originalHeight) {
-            self.alpha = 1 - (ABS(offsetY) / originalHeight);
-            if (originalHeight - offsetY > navHeight) {
+        if (yOffset > 0 && yOffset < originalHeight) {
+            self.alpha = 1 - (ABS(yOffset) / originalHeight);
+            if (originalHeight - yOffset > navHeight) {
                 self.navBackgroundView.alpha = 0;
             } else {
                 self.navBackgroundView.alpha = self.alpha + 1;
             }
         } else {
-            if (ABS(diffY) > 5) {
-                NSInteger hidden = (diffY > 0) ? YES : NO;
+            if (ABS(yDiff) > 5) {
+                NSInteger hidden = (yDiff > 0) ? YES : NO;
                 if ((hidden && !self.navigationBar.hidden) || (!hidden && self.navigationBar.hidden)) {
                     [UIView animateWithDuration:0.25 animations:^{
                         self.navigationBar.transform = hidden ? CGAffineTransformMakeTranslation(0, -self.navigationBar.height) : CGAffineTransformIdentity;
@@ -329,9 +379,12 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         return;
     }
     
-    NSUInteger item = self.pageControl.currentPage + 2;
-    item = (item < [self numberOfItemsInSection:0]) ? item : 0;
-    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:item inSection:0];
+    self.isLeftScroll = YES;
+    self.hiddenCell.hidden = YES;
+    
+    NSUInteger itemIndex = self.pageControl.currentPage + 2;
+    itemIndex = (itemIndex < [self numberOfItemsInSection:0]) ? itemIndex : 0;
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:0];
     [self scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionLeft animated:YES];
 }
 

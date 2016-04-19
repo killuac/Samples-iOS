@@ -29,18 +29,17 @@
     self.tableView.allowsSelection = NO;
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
-    self.tableView.backgroundColor = [UIColor blackColor];
     [self.view addSubview:self.tableView];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"TableCell"];
     
-    ParallaxView *parallaxView = [ParallaxView parallaxViewWithFrame:self.view.frame pageCount:3];
+    ParallaxView *parallaxView = [ParallaxView parallaxViewWithFrame:self.view.bounds pageCount:3 animated:YES];
     parallaxView.customDataSource = self;
-    parallaxView.isAutoScrolling = YES;
+//    parallaxView.isAutoScrolling = YES;
     [self.tableView addSubview:parallaxView];
     
     _navgationView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 44)];
     _navgationView.alpha = 0;
-    _navgationView.backgroundColor = [UIColor blackColor];
+    _navgationView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:self.navgationView];
 }
 

@@ -30,8 +30,12 @@
 @interface ParallaxView : UICollectionView
 
 + (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount;
++ (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount animated:(BOOL)isAnimated;
 
 @property (nonatomic, strong) id <ParallaxViewDataSource> customDataSource;
+
+@property (nonatomic, strong) UIPageControl *pageControl;
+
 @property (nonatomic, assign) BOOL isAutoScrolling;     // Is auto scroll page, default is NO.
 
 @end
