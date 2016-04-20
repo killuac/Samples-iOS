@@ -38,13 +38,18 @@
     [self.view addSubview:self.tableView];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"TableCell"];
     
-    KLParallaxView *parallaxView = [KLParallaxView parallaxViewWithFrame:self.view.bounds pageCount:3 animated:YES];
+    KLParallaxView *parallaxView = [KLParallaxView parallaxViewWithFrame:CGRectInset(self.view.bounds, 0, 100) pageCount:3 animated:YES];
     parallaxView.customDataSource = self;
 //    parallaxView.isAutoScrolling = YES;
     [self.tableView addSubview:parallaxView];
     
     _navigationBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 44)];
     _navigationBar.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0];
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
+    label.text = @"导航栏";
+    [label sizeToFit];
+    label.center = CGPointMake(_navigationBar.width/2, _navigationBar.height/2);
+    [self.navigationBar addSubview:label];
     [self.view addSubview:self.navigationBar];
     
     self.shoppingCart = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -83,10 +88,12 @@
     smallImageView.center = parallaxView.center;
     [toView.superview addSubview:smallImageView];
     
+//    smallImageView.transform = CGAffineTransformMakeScale(2, 2);
     [UIView animateWithDuration:0.5 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
         CGFloat tx = toView.centerX - smallImageView.centerX;
         CGFloat ty = toView.centerY - smallImageView.centerY;
         smallImageView.transform = CGAffineTransformMakeTranslation(tx, ty);
+//        smallImageView.transform = CGAffineTransformMakeScale(1, 1);
     } completion:^(BOOL finished) {
         [smallImageView removeFromSuperview];
         [toView animateSpringScale];

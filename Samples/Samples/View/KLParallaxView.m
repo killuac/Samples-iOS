@@ -148,7 +148,7 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 - (void)didMoveToSuperview
 {
     if (self.superScrollView) {
-        self.superScrollView.contentInset = UIEdgeInsetsMake(self.height, 0, 0, 0);
+        self.superScrollView.contentInset = UIEdgeInsetsMake(self.originalSize.height, 0, 0, 0);
         
         if (self.isAnimated) {
             self.superScrollView.contentOffset = CGPointZero;
@@ -274,6 +274,7 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     }
     NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:0];
     [self scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionLeft animated:NO];
+    self.targetContentOffset = self.contentOffset;
     
 //  Set background cell and hide cell
 //  Maybe visible is nil since reset content offset for endless scroll, so need hide cell in method "collectionView:cellForItemAtIndexPath:"
@@ -322,20 +323,24 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         self.height = originalHeight - yOffset;
         
 //      Update navigation
-        if (!self.navigationBar) return;
+        if (!self.navigationBar || yOffset <= 0) return;
+        
         CGPoint preContentOffset = [change[NSKeyValueChangeOldKey] CGPointValue];
         CGFloat yDiff = contentOffset.y - preContentOffset.y;
         CGFloat navHeight = self.navigationBar.height;
         
-        if (yOffset > 0 && yOffset < originalHeight) {
-            self.alpha = 1 - (ABS(yOffset) / originalHeight);
+        if (yOffset <= originalHeight) {
+            self.navigationBar.hidden = NO;
+            self.navigationBar.transform = CGAffineTransformIdentity;
+            
+            self.alpha = MAX(0, 1 - (ABS(yOffset) / (originalHeight - self.navigationBar.height)));
             if (originalHeight - yOffset > navHeight) {
                 self.navigationBar.backgroundColor = [self.navigationBar.backgroundColor colorWithAlphaComponent:0];
             } else {
                 self.navigationBar.backgroundColor = [self.navigationBar.backgroundColor colorWithAlphaComponent:(self.alpha + 1)];
             }
         } else {
-            if (ABS(yDiff) > 5) {
+            if (ABS(yDiff) > 4) {
                 NSInteger hidden = (yDiff > 0) ? YES : NO;
                 if ((hidden && !self.navigationBar.hidden) || (!hidden && self.navigationBar.hidden)) {
                     [UIView animateWithDuration:0.25 animations:^{

@@ -250,7 +250,7 @@
 #pragma mark - Animation
 - (void)animateSpringScale
 {
-    CGFloat duration = 0.25f;
+    CGFloat duration = 0.2f;
     
     [UIView animateWithDuration:duration animations:^{
         self.transform = CGAffineTransformMakeScale(1.1, 1.1);
