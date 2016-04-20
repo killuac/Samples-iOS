@@ -12,7 +12,6 @@
 @import Foundation;
 @import ObjectiveC;
 
-#import "UIView+Frame.h"
-#import "UIView+Utility.h"
+#import "UIView+KLView.h"
 
 #endif

@@ -7,10 +7,9 @@
 //
 
 #import "ViewController.h"
-#import "ParallaxView.h"
-#import "UIView+Animation.h"
+#import "KLParallaxView.h"
 
-@interface ViewController () <UITableViewDataSource, UITableViewDelegate, ParallaxViewDataSource>
+@interface ViewController () <UITableViewDataSource, UITableViewDelegate, KLParallaxViewDataSource>
 
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UIButton *shoppingCart;
@@ -39,15 +38,14 @@
     [self.view addSubview:self.tableView];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"TableCell"];
     
-    ParallaxView *parallaxView = [ParallaxView parallaxViewWithFrame:self.view.bounds pageCount:3 animated:YES];
+    KLParallaxView *parallaxView = [KLParallaxView parallaxViewWithFrame:self.view.bounds pageCount:3 animated:YES];
     parallaxView.customDataSource = self;
 //    parallaxView.isAutoScrolling = YES;
     [self.tableView addSubview:parallaxView];
     
-    _navgationView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 44)];
-    _navgationView.alpha = 0;
-    _navgationView.backgroundColor = [UIColor whiteColor];
-    [self.view addSubview:self.navgationView];
+    _navigationBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 44)];
+    _navigationBar.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0];
+    [self.view addSubview:self.navigationBar];
     
     self.shoppingCart = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.shoppingCart setTitle:@"购物车" forState:UIControlStateNormal];
@@ -69,13 +67,13 @@
 
 - (void)pressed:(UIButton *)button
 {
-    [button startScaleAnimation];
+    [button animateSpringScale];
 }
 
 #pragma mark - 购物车动画
 - (void)startAnimationFromImageView:(UIImageView *)imageView toView:(UIView *)toView
 {
-    ParallaxView *parallaxView = [imageView superCollectionView];
+    KLParallaxView *parallaxView = (id)[imageView superCollectionView];
     
     UIImageView *smallImageView = [[UIImageView alloc] initWithImage:imageView.image];
     smallImageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -91,7 +89,7 @@
         smallImageView.transform = CGAffineTransformMakeTranslation(tx, ty);
     } completion:^(BOOL finished) {
         [smallImageView removeFromSuperview];
-        [toView startScaleAnimation];
+        [toView animateSpringScale];
     }];
 }
 
@@ -109,7 +107,7 @@
 }
 
 #pragma mark - Collection view data source
-- (void)parallaxView:(ParallaxView *)parallaxView configCell:(ParallaxViewCell *)cell forPageIndexPath:(NSIndexPath *)indexPath
+- (void)parallaxView:(KLParallaxView *)parallaxView configCell:(KLParallaxViewCell *)cell forPageIndexPath:(NSIndexPath *)indexPath
 {
     cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"guide%tu.jpg", indexPath.item]];
     [cell.imageView addTapGesture];

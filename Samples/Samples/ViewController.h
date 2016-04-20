@@ -10,7 +10,7 @@
 
 @interface ViewController : UIViewController
 
-@property (nonatomic, strong, readonly) UIView *navgationView;
+@property (nonatomic, strong, readonly) UIView *navigationBar;
 
 @end
 

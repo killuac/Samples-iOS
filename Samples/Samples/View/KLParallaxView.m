@@ -6,10 +6,9 @@
 //  Copyright © 2016 Syzygy. All rights reserved.
 //
 
-#import "ParallaxView.h"
-#import "ViewController.h"
+#import "KLParallaxView.h"
 
-@implementation ParallaxViewCell
+@implementation KLParallaxViewCell
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
@@ -35,11 +34,11 @@
 
 static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // Scroll super view
 
-@interface ParallaxView () <UICollectionViewDataSource, UICollectionViewDelegate>
+@interface KLParallaxView () <UICollectionViewDataSource, UICollectionViewDelegate>
 
 @property (nonatomic, assign) NSUInteger pageCount;
 @property (nonatomic, assign) BOOL isAnimated;
-@property (nonatomic, strong) ParallaxViewCell *backgroundCell;
+@property (nonatomic, strong) KLParallaxViewCell *backgroundCell;
 @property (nonatomic, strong) NSTimer *timer;
 
 @property (nonatomic, assign) CGSize originalSize;
@@ -47,11 +46,11 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 @property (nonatomic, assign) BOOL isLeftScroll;    // Auto scroll is to left
 @property (nonatomic, assign) BOOL needHideCell;    // For parallax effort
-@property (nonatomic, strong) ParallaxViewCell *hiddenCell;
+@property (nonatomic, strong) KLParallaxViewCell *hiddenCell;
 
 @end
 
-@implementation ParallaxView
+@implementation KLParallaxView
 
 + (instancetype)parallaxViewWithFrame:(CGRect)frame
 {
@@ -84,9 +83,9 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         self.delegate = self;
         self.pagingEnabled = YES;
         self.showsHorizontalScrollIndicator = NO;
-        self.decelerationRate = UIScrollViewDecelerationRateFast;
         self.backgroundColor = [UIColor whiteColor];
-        [self registerClass:[ParallaxViewCell class] forCellWithReuseIdentifier:CELL_IDENTIFIER_COMMON];
+        self.backgroundView = [[UIView alloc] initWithFrame:frame];
+        [self registerClass:[KLParallaxViewCell class] forCellWithReuseIdentifier:CELL_IDENTIFIER_COMMON];
         
         [self addSubviews];
     }
@@ -153,14 +152,14 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         
         if (self.isAnimated) {
             self.superScrollView.contentOffset = CGPointZero;
-            [self performSelector:@selector(startAnimation) withObject:nil afterDelay:0.3];
+            [self performSelector:@selector(animateShow) withObject:nil afterDelay:0.4];
         }
     }
     
     [self addObservers];
 }
 
-- (void)startAnimation
+- (void)animateShow
 {
     [self.superScrollView setContentOffset:CGPointMake(0, -self.originalSize.height) animated:YES];
 }
@@ -177,7 +176,7 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
 //  Cell indexPath
-    ParallaxViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CELL_IDENTIFIER_COMMON forIndexPath:indexPath];
+    KLParallaxViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CELL_IDENTIFIER_COMMON forIndexPath:indexPath];
     cell.hidden = NO;
     
 //  Data source indexPath
@@ -192,9 +191,8 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     [self.customDataSource parallaxView:self configCell:cell forPageIndexPath:dsIndexPath];
     
 //  Set background view for parallax effect
-    if (!self.backgroundView && dsIndexPath.item == 0 && self.pageCount > 1) {
-        self.backgroundView = [[UIView alloc] initWithFrame:self.bounds];
-        self.backgroundCell = [[ParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
+    if (!self.backgroundCell && dsIndexPath.item == 0 && self.pageCount > 1) {
+        self.backgroundCell = [[KLParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
         self.needHideCell = YES;
     }
     
@@ -206,9 +204,10 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     return cell;
 }
 
-- (void)setBackgroundCell:(ParallaxViewCell *)backgroundCell
+- (void)setBackgroundCell:(KLParallaxViewCell *)backgroundCell
 {
-    [self.backgroundCell removeFromSuperview];
+    [_backgroundCell removeFromSuperview];
+    
     NSIndexPath *indexPath = [NSIndexPath indexPathForItem:self.pageControl.currentPage inSection:0];
     [self.customDataSource parallaxView:self configCell:backgroundCell forPageIndexPath:indexPath];
     [self.backgroundView addSubview:backgroundCell];
@@ -217,6 +216,11 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 }
 
 #pragma mark - Scroll view delegate
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    return !(self.isDragging || self.isDecelerating || self.superScrollView.isDragging || self.superScrollView.isDecelerating);
+}
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     if (self.superScrollView.isDecelerating) return;
@@ -233,7 +237,6 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
 {
-    self.scrollEnabled = NO;
     self.targetContentOffset = *targetContentOffset;
 }
 
@@ -242,13 +245,6 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     [self stopAutoScrollScheduler];
     self.isLeftScroll = NO;
     self.hiddenCell.hidden = YES;
-    
-    [self performSelector:@selector(enableScroll) withObject:nil afterDelay:0.5];
-}
-
-- (void)enableScroll
-{
-    self.scrollEnabled = YES;
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
@@ -264,9 +260,8 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (void)updateUI
 {
-    NSUInteger itemIndex = 0;
-    
 //  Set content offset for endless scroll
+    NSUInteger itemIndex = 0;
     if (self.contentOffset.x == 0) {
         self.pageControl.currentPage = self.pageCount - 1;
         itemIndex = self.pageCount;
@@ -282,8 +277,8 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
     
 //  Set background cell and hide cell
 //  Maybe visible is nil since reset content offset for endless scroll, so need hide cell in method "collectionView:cellForItemAtIndexPath:"
-    self.backgroundCell = [[ParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
-    ParallaxViewCell *visibleCell = (id)[self cellForItemAtIndexPath:indexPath];
+    self.backgroundCell = [[KLParallaxViewCell alloc] initWithFrame:self.backgroundView.bounds];
+    KLParallaxViewCell *visibleCell = (id)[self cellForItemAtIndexPath:indexPath];
     if (visibleCell) {
         self.hiddenCell = visibleCell;
     } else {
@@ -335,9 +330,9 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
         if (yOffset > 0 && yOffset < originalHeight) {
             self.alpha = 1 - (ABS(yOffset) / originalHeight);
             if (originalHeight - yOffset > navHeight) {
-                self.navBackgroundView.alpha = 0;
+                self.navigationBar.backgroundColor = [self.navigationBar.backgroundColor colorWithAlphaComponent:0];
             } else {
-                self.navBackgroundView.alpha = self.alpha + 1;
+                self.navigationBar.backgroundColor = [self.navigationBar.backgroundColor colorWithAlphaComponent:(self.alpha + 1)];
             }
         } else {
             if (ABS(yDiff) > 5) {
@@ -356,13 +351,11 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (UIView *)navigationBar
 {
-    return [(ViewController *)self.superViewController navgationView];
-}
-
-- (UIView *)navBackgroundView
-{
-    // FIXME: Get navigation background view
-    return [(ViewController *)self.superViewController navgationView];
+    if ([self.viewController respondsToSelector:@selector(navigationBar)]) {
+        return [(id)self.viewController navigationBar];
+    } else {
+        return self.viewController.navigationController.navigationBar;
+    }
 }
 
 #pragma mark - Auto scroll
@@ -383,7 +376,7 @@ static void *ParallaxSuperObserverContext = &ParallaxSuperObserverContext;  // S
 
 - (void)scrollPage
 {
-    if (self.isTracking || self.superScrollView.isTracking || self.superScrollView.isDecelerating) {
+    if (self.isTracking || self.isDecelerating || self.superScrollView.isTracking || self.superScrollView.isDecelerating) {
         return;
     }
     

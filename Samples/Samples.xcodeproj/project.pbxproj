@@ -17,14 +17,12 @@
 		E316D8621CC12FB200BA8A63 /* SamplesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D8611CC12FB200BA8A63 /* SamplesTests.m */; };
 		E316D86D1CC12FB200BA8A63 /* SamplesUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D86C1CC12FB200BA8A63 /* SamplesUITests.m */; };
 		E316D8881CC130FF00BA8A63 /* DotAnimationView.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D87C1CC130FF00BA8A63 /* DotAnimationView.m */; };
-		E316D8891CC130FF00BA8A63 /* UIView+Frame.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D87F1CC130FF00BA8A63 /* UIView+Frame.m */; };
-		E316D88A1CC130FF00BA8A63 /* UIView+Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D8811CC130FF00BA8A63 /* UIView+Utility.m */; };
+		E316D88A1CC130FF00BA8A63 /* UIView+KLView.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D8811CC130FF00BA8A63 /* UIView+KLView.m */; };
 		E316D88B1CC130FF00BA8A63 /* CoreImageArch.png in Resources */ = {isa = PBXBuildFile; fileRef = E316D8831CC130FF00BA8A63 /* CoreImageArch.png */; };
 		E316D88C1CC130FF00BA8A63 /* guide0.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E316D8841CC130FF00BA8A63 /* guide0.jpg */; };
 		E316D88D1CC130FF00BA8A63 /* guide1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E316D8851CC130FF00BA8A63 /* guide1.jpg */; };
 		E316D88E1CC130FF00BA8A63 /* guide2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E316D8861CC130FF00BA8A63 /* guide2.jpg */; };
-		E316D8921CC136C700BA8A63 /* ParallaxView.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D8911CC136C700BA8A63 /* ParallaxView.m */; };
-		E33687D51CC66D5D0009E160 /* UIView+Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = E33687D41CC66D5D0009E160 /* UIView+Animation.m */; };
+		E316D8921CC136C700BA8A63 /* KLParallaxView.m in Sources */ = {isa = PBXBuildFile; fileRef = E316D8911CC136C700BA8A63 /* KLParallaxView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,19 +62,15 @@
 		E316D86E1CC12FB200BA8A63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E316D87B1CC130FF00BA8A63 /* DotAnimationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DotAnimationView.h; sourceTree = "<group>"; };
 		E316D87C1CC130FF00BA8A63 /* DotAnimationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DotAnimationView.m; sourceTree = "<group>"; };
-		E316D87E1CC130FF00BA8A63 /* UIView+Frame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Frame.h"; sourceTree = "<group>"; };
-		E316D87F1CC130FF00BA8A63 /* UIView+Frame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Frame.m"; sourceTree = "<group>"; };
-		E316D8801CC130FF00BA8A63 /* UIView+Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Utility.h"; sourceTree = "<group>"; };
-		E316D8811CC130FF00BA8A63 /* UIView+Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Utility.m"; sourceTree = "<group>"; };
+		E316D8801CC130FF00BA8A63 /* UIView+KLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+KLView.h"; sourceTree = "<group>"; };
+		E316D8811CC130FF00BA8A63 /* UIView+KLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+KLView.m"; sourceTree = "<group>"; };
 		E316D8831CC130FF00BA8A63 /* CoreImageArch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CoreImageArch.png; sourceTree = "<group>"; };
 		E316D8841CC130FF00BA8A63 /* guide0.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = guide0.jpg; sourceTree = "<group>"; };
 		E316D8851CC130FF00BA8A63 /* guide1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = guide1.jpg; sourceTree = "<group>"; };
 		E316D8861CC130FF00BA8A63 /* guide2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = guide2.jpg; sourceTree = "<group>"; };
 		E316D88F1CC1314400BA8A63 /* Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
-		E316D8901CC136C700BA8A63 /* ParallaxView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParallaxView.h; sourceTree = "<group>"; };
-		E316D8911CC136C700BA8A63 /* ParallaxView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ParallaxView.m; sourceTree = "<group>"; };
-		E33687D31CC66D5D0009E160 /* UIView+Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Animation.h"; sourceTree = "<group>"; };
-		E33687D41CC66D5D0009E160 /* UIView+Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Animation.m"; sourceTree = "<group>"; };
+		E316D8901CC136C700BA8A63 /* KLParallaxView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLParallaxView.h; sourceTree = "<group>"; };
+		E316D8911CC136C700BA8A63 /* KLParallaxView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLParallaxView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,10 +178,8 @@
 		E316D87D1CC130FF00BA8A63 /* Category */ = {
 			isa = PBXGroup;
 			children = (
-				E316D87E1CC130FF00BA8A63 /* UIView+Frame.h */,
-				E316D87F1CC130FF00BA8A63 /* UIView+Frame.m */,
-				E316D8801CC130FF00BA8A63 /* UIView+Utility.h */,
-				E316D8811CC130FF00BA8A63 /* UIView+Utility.m */,
+				E316D8801CC130FF00BA8A63 /* UIView+KLView.h */,
+				E316D8811CC130FF00BA8A63 /* UIView+KLView.m */,
 			);
 			path = Category;
 			sourceTree = "<group>";
@@ -206,10 +198,8 @@
 		E316D8871CC130FF00BA8A63 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				E316D8901CC136C700BA8A63 /* ParallaxView.h */,
-				E316D8911CC136C700BA8A63 /* ParallaxView.m */,
-				E33687D31CC66D5D0009E160 /* UIView+Animation.h */,
-				E33687D41CC66D5D0009E160 /* UIView+Animation.m */,
+				E316D8901CC136C700BA8A63 /* KLParallaxView.h */,
+				E316D8911CC136C700BA8A63 /* KLParallaxView.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -349,15 +339,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E316D8891CC130FF00BA8A63 /* UIView+Frame.m in Sources */,
-				E316D8921CC136C700BA8A63 /* ParallaxView.m in Sources */,
+				E316D8921CC136C700BA8A63 /* KLParallaxView.m in Sources */,
 				E316D84C1CC12FB200BA8A63 /* ViewController.m in Sources */,
 				E316D8881CC130FF00BA8A63 /* DotAnimationView.m in Sources */,
 				E316D8521CC12FB200BA8A63 /* Samples.xcdatamodeld in Sources */,
 				E316D8491CC12FB200BA8A63 /* AppDelegate.m in Sources */,
-				E316D88A1CC130FF00BA8A63 /* UIView+Utility.m in Sources */,
+				E316D88A1CC130FF00BA8A63 /* UIView+KLView.m in Sources */,
 				E316D8461CC12FB200BA8A63 /* main.m in Sources */,
-				E33687D51CC66D5D0009E160 /* UIView+Animation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

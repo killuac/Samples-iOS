@@ -1,5 +1,5 @@
 //
-//  ParallaxView.h
+//  KLParallaxView.h
 //  Samples
 //
 //  Created by Killua Liu on 4/15/16.
@@ -8,18 +8,18 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ParallaxViewCell : UICollectionViewCell
+@interface KLParallaxViewCell : UICollectionViewCell
 
 @property (nonatomic, strong, readonly) UIImageView *imageView;
 
 @end
 
 
-@class ParallaxView;
+@class KLParallaxView;
 
-@protocol ParallaxViewDataSource <NSObject>
+@protocol KLParallaxViewDataSource <NSObject>
 
-- (void)parallaxView:(ParallaxView *)parallaxView configCell:(ParallaxViewCell *)cell forPageIndexPath:(NSIndexPath *)indexPath;
+- (void)parallaxView:(KLParallaxView *)parallaxView configCell:(KLParallaxViewCell *)cell forPageIndexPath:(NSIndexPath *)indexPath;
 
 @optional
 - (NSUInteger)numberOfPages;
@@ -27,13 +27,13 @@
 @end
 
 
-@interface ParallaxView : UICollectionView
+@interface KLParallaxView : UICollectionView
 
 + (instancetype)parallaxViewWithFrame:(CGRect)frame;
 + (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount;
 + (instancetype)parallaxViewWithFrame:(CGRect)frame pageCount:(NSUInteger)pageCount animated:(BOOL)isAnimated;
 
-@property (nonatomic, strong) id <ParallaxViewDataSource> customDataSource;
+@property (nonatomic, strong) id <KLParallaxViewDataSource> customDataSource;
 @property (nonatomic, strong) UIPageControl *pageControl;
 @property (nonatomic, assign) BOOL isAutoScrolling;     // Is auto scroll page, default is NO.
 
